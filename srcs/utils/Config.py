@@ -1,6 +1,6 @@
 from typing import Any
 from sys import stderr
-from constants import Colors, ZoneTypes
+from srcs.constants import Colors, ZoneTypes
 from .Hub import Hub, Connection
 
 CONNECTION_FORMAT = ('Expected format - "<start_zone>-<end_zone> '
@@ -263,14 +263,14 @@ class Config():
             raise ConfigError('First connection field ' +
                               'argument must be comprised of ' +
                               'exactly 2 zone names.')
-        start: Hub
-        end: Hub
-        start, end = self.validate_connection(start_end[0],
-                                              start_end[1], parsed)
-        start.connections.append(end)
-        end.connections.append(start)
-        connection['start'] = start
-        connection['end'] = end
+        zone1: Hub
+        zone2: Hub
+        zone1, zone2 = self.validate_connection(start_end[0],
+                                                start_end[1], parsed)
+        zone1.connections.append(zone2)
+        zone2.connections.append(zone1)
+        connection['zone1'] = zone1
+        connection['zone2'] = zone2
         return Connection(**connection)
 
     def extract_connection_metadata(self, metadata: str) -> dict[str, int]:
@@ -309,19 +309,19 @@ class Config():
         """
 
         hubs: list[Hub] = parsed['hubs']
-        start: Hub | None = None
-        end: Hub | None = None
+        z1: Hub | None = None
+        z2: Hub | None = None
 
         for hub in hubs:
             if hub.name == zone1:
-                start = hub
+                z1 = hub
             if hub.name == zone2:
-                end = hub
+                z2 = hub
 
-        if not start:
+        if not z1:
             raise ConfigError(f'Unknown hub name "{zone1}".')
 
-        if not end:
+        if not z2:
             raise ConfigError(f'Unknown hub name "{zone2}".')
 
         if zone1 == zone2:
@@ -329,13 +329,14 @@ class Config():
                               'as connection zone 2.')
 
         for connection in parsed['connections']:
-            if {zone1, zone2} == {connection.start.name, connection.end.name}:
+            if {zone1, zone2} == {connection.zone1.name,
+                                  connection.zone2.name}:
                 raise ConfigError('Repeated zone connection.')
 
-        return (start, end)
+        return (z1, z2)
 
 
 if __name__ == '__main__':
-    filename = '../maps/easy/01_linear_path.txt'
+    filename = 'maps/easy/01_linear_path.txt'
     config = Config(filename)
-    # print(config.start_hub)
+    print(config.start_hub)

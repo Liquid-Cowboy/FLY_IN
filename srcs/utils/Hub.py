@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from constants import Colors, ZoneTypes
+from srcs.constants import Colors, ZoneTypes
+from srcs.Drone import Drone
 
 
 @dataclass
@@ -27,14 +28,13 @@ class Hub():
     zone: ZoneTypes = ZoneTypes.NORMAL
     color: Colors = Colors.WHITE
     max_drones: int = 1
-    cur_drones: int = 0
+    turns: dict[int, list[Drone]] = {}
     connections: list["Hub"] = field(default_factory=list)
     visited: bool = False
     cost: int = 0
     eur: int = 0
 
 
-@dataclass
 class Connection():
     """
     Keeps track of connections between zones and their
@@ -49,7 +49,9 @@ class Connection():
         cur_drones: int - how many drones are currently
             passing through this location
     """
-    start: Hub
-    end: Hub
-    max_link_capacity: int = 1
-    cur_drones: int = 0
+    def __init__(self, zone1: Hub, zone2: Hub):
+        self.zone1: Hub = zone1
+        self.zone2: Hub = zone2
+        self.turns: dict[int, list[Drone]] = {}
+        self.max_link_capacity: int = 1
+        self.cur_drones: int = 0
