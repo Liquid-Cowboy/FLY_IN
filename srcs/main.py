@@ -47,7 +47,7 @@ def create_button(size: tuple[int, int]) -> dict:
         'rect': button_base.get_rect()
     }
 
-def something() -> None:
+def something():
     window_rect = window.screen.get_rect()
     large_button_w = 512
     button_height = 60
@@ -91,12 +91,13 @@ def something() -> None:
                      options_button['bottom'],
                      options_button['rect'].topleft,
                      thickness)
-    
-    quit = Button(quit_button['base'],
+
+    quit_but = Button(quit_button['base'],
                   quit_button['highlight'],
                   quit_button['bottom'],
                   quit_button['rect'].topleft,
                   thickness)
+    return (logo, logo_rect, filename, custom, options, quit_but)
 
 
 def main_menu(window: Window) -> None:
@@ -104,9 +105,11 @@ def main_menu(window: Window) -> None:
     # setup button rects at the right place on the grid
     running: bool = True
 
+    logo, logo_rect, filename, custom, options, quit_but = something()
+
     while running:
         for event in pygame.event.get():
-            if quit.check_click(event):
+            if quit_but.check_click(event):
                 running = False
             if event.type == pygame.QUIT:
                 running = False
@@ -120,8 +123,8 @@ def main_menu(window: Window) -> None:
         # custom.check_click(None)
         # options.draw(window.screen)
         # options.check_click(None)
-        quit.hover()
-        quit.draw(window.screen)
+        quit_but.hover()
+        quit_but.draw(window.screen)
 
         window.screen.blit(logo, logo_rect)
 
@@ -136,7 +139,6 @@ manager.schedule_drones()
 turn_gen = manager.execute_turn()
 for res in turn_gen:
     print(res['log'])
-
 
 
 
