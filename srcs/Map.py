@@ -9,6 +9,7 @@ class Map():
     def __init__(self, config: Config):
 
         self._hubs = config.hubs
+        self._connections = config.connections
         self._min_x: int = min(h.x for h in config.hubs)
         self._min_y: int = min(h.y for h in config.hubs)
         self._max_x: int = max(h.x for h in config.hubs)
@@ -26,6 +27,7 @@ class Map():
         self._height: int = (self._max_y + self._comp_y + 1) * self._cs
 
     def get_cell_pos(self, x: int, y: int) -> tuple[int, int]:
+        """Translates input coordinates to pixel coordinates on the screen"""
         return ((x + self._comp_x) * self._cs + self._cs // 2,
                 (y + self._comp_y) * self._cs + self._cs // 2)
 
@@ -37,21 +39,29 @@ class Map():
         circle_rad = cam.get_trans_nb(int(circle_rad))
         line_width = cam.get_trans_nb(3)
 
-        for hub in self._hubs:
-            x1: int
-            y1: int
-            x1, y1 = (self.get_cell_pos(hub.x, hub.y))
-            # transform coordinates based on camera
-            x1, y1 = cam.get_screen_coor(x1, y1)
+        x1: int
+        x2: int
+        y1: int
+        y2: int
+        
+        for c in self._connections:
+            x1, y1 = cam.get_screen_coor(
+                self.get_cell_pos(
+                    c.zone1.x,
+                    c.zone1.y
+                ))
 
-            for link in hub.connections:
-                x2: int
-                y2: int
-                x2, y2 = self.get_cell_pos(link.x, link.y)
-                x2, y2 = cam.get_screen_coor(x2, y2)
-
-                pygame.draw.line(surface, (0, 0, 0),
+            x2, y2 = cam.get_screen_coor(
+                self.get_cell_pos(
+                    c.zone2.x,
+                    c.zone2.y
+                ))
+            pygame.draw.line(surface, (0, 0, 0),
                                  (x1, y1), (x2, y2), line_width)
+        for hub in self._hubs:
+
+            # transform coordinates based on camera
+            x1, y1 = cam.get_screen_coor(self.get_cell_pos(hub.x, hub.y))
 
             pygame.draw.circle(surface,
                                COLOR_CODE[hub.color.value],

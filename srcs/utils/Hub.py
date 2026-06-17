@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from srcs.constants import Colors, ZoneTypes
-from srcs.Drone import Drone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Drone import Drone
+
+from constants import Colors, ZoneTypes
 
 
 @dataclass
@@ -28,11 +34,25 @@ class Hub():
     zone: ZoneTypes = ZoneTypes.NORMAL
     color: Colors = Colors.WHITE
     max_drones: int = 1
-    turns: dict[int, list[Drone]] = {}
-    connections: list["Hub"] = field(default_factory=list)
-    visited: bool = False
-    cost: int = 0
-    eur: int = 0
+
+    curr_drones: list[Drone] = field(default_factory=list)
+
+    neighbours: list[Hub] = field(default_factory=list)
+
+    turns: dict[int, int] = field(default_factory=dict)
+
+    h: int | None = None
+
+    def get_connection(self, connections: list[Connection],
+                       zone: Hub) -> Connection | None:
+        for c in connections:
+            if (c.zone1 == self and c.zone2 == zone or
+               c.zone2 == self and c.zone1 == zone):
+                return c
+        return None
+    
+    def __hash__(self):
+        return hash(self.name)
 
 
 class Connection():
@@ -49,9 +69,16 @@ class Connection():
         cur_drones: int - how many drones are currently
             passing through this location
     """
-    def __init__(self, zone1: Hub, zone2: Hub):
+    def __init__(self, zone1: Hub, zone2: Hub, max_link_capacity: int = 1):
         self.zone1: Hub = zone1
         self.zone2: Hub = zone2
-        self.turns: dict[int, list[Drone]] = {}
-        self.max_link_capacity: int = 1
+
+        self.turns: dict[int, int] = {}
+
+        self.max_link_capacity: int = max_link_capacity
         self.cur_drones: int = 0
+
+    @property
+    def name(self) -> str:
+        """Get connection name"""
+        return self.zone1.name + '-' + self.zone2.name

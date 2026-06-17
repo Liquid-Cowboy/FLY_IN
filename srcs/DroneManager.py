@@ -1,11 +1,14 @@
 from Drone import Drone
-from utils import Config, Hub
+from utils import Config, Hub, Connection
 from constants import ZoneTypes
+from Algorithm import Algorithm
+from typing import Callable, Generator, Any
+
 
 class DroneManager():
     _drones: list[Drone] = []
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config) -> None:
         if not isinstance(config, Config):
             raise TypeError('Argument "config" is not a valid Config obj.')
 
@@ -13,44 +16,58 @@ class DroneManager():
         for i in range(1, config.nb_drones + 1):
             self._drones.append(Drone(i, config.start_hub))
 
-    def validate_map(self):
-        hubs:list[Hub] = self._config.hubs
-        cur: Hub = self._config.start_hub
-        end_hub: Hub = self._config.end_hub
-        cur.cost = 0
-        while not end_hub.visited:
-            cur.visited = True
-            self.astar_helper(cur, end_hub)
+    def schedule_drones(self) -> None:
+        algo: Callable = Algorithm.a_star
 
-
-    @staticmethod
-    def astar_helper(start: Hub, end: Hub):
-
-        x2: int = end.x
-        y2: int = end.y
-
-        s_cost: int = start.cost if start.cost else 0
-
-        for hub in start.connections:
-            if hub.zone == ZoneTypes.BLOCKED:
+        for d in self._drones:
+            path: list[tuple[Hub, int]] | None = algo(
+                self._config.start_hub,
+                self._config.end_hub,
+                self._config.connections)
+            if not path:
                 continue
-            x1: int = hub.x
-            y1: int = hub.y
-            cost: int = s_cost + abs(x2 - x1) + abs(y2 - y1)
-            if hub.zone == ZoneTypes.RESTRICTED:
-                cost += 1
-            elif hub.zone == ZoneTypes.PRIORITY:
-                cost -= 1
-            if not hub.cost or hub.cost > cost:
-                hub.cost = cost
+            # print(d.id, path[0][0].name)
+            for i, item in enumerate(path):
+                hub: Hub
+                turn: int
 
+                hub, turn = item
 
+                if hub.zone == ZoneTypes.RESTRICTED and i > 0:
+                    connection: Connection | None = hub.get_connection(
+                        self._config.connections, path[i - 1][0])
+                    if not connection:
+                        raise Exception
+                    if connection.turns.get(turn - 1):
+                        connection.turns[turn - 1] += 1
+                    else:
+                        connection.turns[turn - 1] = 1
 
+                    d.turns[turn - 1] = connection
+                if hub.turns.get(turn):
+                    hub.turns[turn] += 1
+                else:
+                    hub.turns[turn] = 1
+                d.turns[turn] = hub
 
-if __name__ == '__main__':
-    from parser import parser
-
-    config: Config = parser('../maps/easy/01_linear_path.txt')
-    manager: DroneManager = DroneManager(config)
-    for drone in manager._drones:
-        print(drone.id)
+    def execute_turn(self) -> Generator:
+        i: int = 1
+        finished: bool = False
+        while not finished:
+            finished = True
+            moved_drones: list[Drone] = []
+            log: str = ''
+            for d in self._drones:
+                zone: Hub | Connection | None = d.turns.get(i)
+                if zone:
+                    finished = False
+                    if zone != d.turns.get(i - 1):
+                        log += d.id + '-' + zone.name + ' '
+                        moved_drones.append(d)
+            i += 1
+            res: dict[str, Any] = {
+                'log': log,
+                'moved_drones': moved_drones,
+                'turn': i,
+            }
+            yield res

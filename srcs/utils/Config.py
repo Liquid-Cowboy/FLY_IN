@@ -1,6 +1,6 @@
 from typing import Any
 from sys import stderr
-from srcs.constants import Colors, ZoneTypes
+from constants import Colors, ZoneTypes
 from .Hub import Hub, Connection
 
 CONNECTION_FORMAT = ('Expected format - "<start_zone>-<end_zone> '
@@ -267,8 +267,8 @@ class Config():
         zone2: Hub
         zone1, zone2 = self.validate_connection(start_end[0],
                                                 start_end[1], parsed)
-        zone1.connections.append(zone2)
-        zone2.connections.append(zone1)
+        zone1.neighbours.append(zone2)
+        zone2.neighbours.append(zone1)
         connection['zone1'] = zone1
         connection['zone2'] = zone2
         return Connection(**connection)

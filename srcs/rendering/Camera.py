@@ -20,15 +20,15 @@ class Camera():
         self._dragging: bool = False
         self._zoom: float = 1.0
 
-    def get_screen_coor(self, x: int, y: int) -> tuple[int, int]:
+    def get_screen_coor(self, coor: tuple[int, int]) -> tuple[int, int]:
         """
         Will calculate the precise coordinates, given the current
         offsets and zoom amount. Mutates the x and y variables
         passed as arguments.
         """
         return (
-            int((x + self._x_offset) * self._zoom),
-            int((y + self._y_offset) * self._zoom)
+            int((coor[0] + self._x_offset) * self._zoom),
+            int((coor[1] + self._y_offset) * self._zoom)
         )
 
     def get_trans_nb(self, nb: int) -> int:

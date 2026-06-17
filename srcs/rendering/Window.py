@@ -14,6 +14,7 @@ class Window():
         pygame.init()
 
         self.screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption('Fly-In')
 
     def draw_text(self, surface: Surface, text: str, font: Font,
                   color: tuple[int, int, int],
