@@ -1,3 +1,4 @@
 from .Window import Window
 from .Camera import Camera
-from .Background import Background, IMGS as clouds
+from .Background import Background
+from .Assets import Assets

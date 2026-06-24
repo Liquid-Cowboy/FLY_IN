@@ -10,15 +10,18 @@ class Window():
         """
         Initiates the pygame module and a working screen
         """
-
+        self.width: int = width
+        self.height: int = height
         pygame.init()
 
         self.screen = pygame.display.set_mode((width, height))
+        self.screen_rect = self.screen.get_rect()
         pygame.display.set_caption('Fly-In')
 
-    def draw_text(self, surface: Surface, text: str, font: Font,
+    @staticmethod
+    def draw_text(surface: Surface, text: str, font: Font,
                   color: tuple[int, int, int],
-                  x: int, y: int):
+                  center: tuple[int, int]) -> Surface:
         """
         Utility function to draw centered text.
 
@@ -35,8 +38,10 @@ class Window():
 
         img: Surface = font.render(text, True, color)
         img_rect: Rect = img.get_rect()
-        img_rect.center = (x, y)
+        img_rect.center = center
         surface.blit(img, img_rect)
+
+        return img
 
 
 if __name__ == '__main__':

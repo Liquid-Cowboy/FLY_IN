@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from utils import Hub, Config, Connection
+from setup import Hub, Config, Connection
 import heapq
 from constants import ZoneTypes
 from math import sqrt

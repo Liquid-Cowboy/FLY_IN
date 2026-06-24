@@ -1,21 +1,6 @@
-import pygame
 from pygame import Surface, Rect
 import random
 from typing import Any
-
-IMGS_FOLDER = 'imgs/flats/'
-
-IMGS = {
-    'big_cloud_1': pygame.image.load(IMGS_FOLDER + '42_cloud.png'),
-    'big_cloud_2': pygame.image.load(IMGS_FOLDER + 'big_cloud_1.png'),
-    'big_cloud_3': pygame.image.load(IMGS_FOLDER + 'big_cloud_2.png'),
-    'medium_cloud_1': pygame.image.load(IMGS_FOLDER + 'medium_cloud_1.png'),
-    'medium_cloud_2': pygame.image.load(IMGS_FOLDER + 'medium_cloud_2.png'),
-    'medium_cloud_3': pygame.image.load(IMGS_FOLDER + 'medium_cloud_3.png'),
-    'medium_cloud_4': pygame.image.load(IMGS_FOLDER + 'medium_cloud_4.png'),
-    'medium_cloud_5': pygame.image.load(IMGS_FOLDER + 'medium_cloud_5.png'),
-    'medium_cloud_6': pygame.image.load(IMGS_FOLDER + 'medium_cloud_6.png')
-}
 
 
 class Background():
@@ -45,15 +30,14 @@ class Background():
             and the value is the Surface object of the loaded image itself
         """
         for k, v in imgs.items():
-            surf = pygame.transform.scale_by(v.convert_alpha(), 5)
-            size: tuple[int, int] = surf.get_size()
+            size: tuple[int, int] = v.get_size()
             x: int = random.randint(-int(size[0] * 0.8),
                                     self.pos[0] + self.size[0] - 10)
             y: int = random.randint(-int(size[1] * 0.8),
                                     self.pos[1] + self.size[1] - 10)
             cloud = {
                 'name': k,
-                'surf': surf,
+                'surf': v,
                 'pos': (x, y),
                 'size': size,
                 'direction': self.chose_direction(),

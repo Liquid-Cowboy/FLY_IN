@@ -1,7 +1,7 @@
-from Drone import Drone
-from utils import Config, Hub, Connection
+from setup.Drone import Drone
+from setup import Config, Hub, Connection
 from constants import ZoneTypes
-from Algorithm import Algorithm
+from setup.Algorithm import Algorithm
 from typing import Callable, Generator, Any
 
 

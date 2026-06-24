@@ -1,4 +1,4 @@
-from utils import Config
+from setup import Config
 from constants import COLOR_CODE
 from rendering import Camera, Window
 import pygame
@@ -43,7 +43,7 @@ class Map():
         x2: int
         y1: int
         y2: int
-        
+
         for c in self._connections:
             x1, y1 = cam.get_screen_coor(
                 self.get_cell_pos(
@@ -57,7 +57,7 @@ class Map():
                     c.zone2.y
                 ))
             pygame.draw.line(surface, (0, 0, 0),
-                                 (x1, y1), (x2, y2), line_width)
+                             (x1, y1), (x2, y2), line_width)
         for hub in self._hubs:
 
             # transform coordinates based on camera

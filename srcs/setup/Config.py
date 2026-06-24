@@ -29,14 +29,14 @@ class Config():
             connected
         """
         parsed: dict[str, Any] = {'hubs': [], 'connections': []}
-        self.parser(filename, parsed)
+        error: str | None = self.parser(filename, parsed)
         self.start_hub: Hub = parsed['start_hub']
         self.end_hub: Hub = parsed['end_hub']
         self.nb_drones: int = parsed['nb_drones']
         self.hubs: list[Hub] = parsed['hubs']
         self.connections: list[Connection] = parsed['connections']
 
-    def parser(self, filename: str, parsed: dict[str, Any]) -> None:
+    def parser(self, filename: str, parsed: dict[str, Any]) -> str | None:
         """
         Parses the text configuration file line by line into
         practical data structures.
@@ -53,7 +53,7 @@ class Config():
                 f_lines = f.read().split('\n')
         except FileNotFoundError:
             print(f'Error: file "{filename}" not found.', file=stderr)
-            exit(1)
+            return f'Error: file "{filename}" not found.'
         is_first = True
         for i, line in enumerate(f_lines):
 
@@ -80,7 +80,7 @@ class Config():
                 self.parse_line(key, value, parsed)
             except ConfigError as e:
                 print(f'Error in {filename} (line {i + 1}): {e}', file=stderr)
-                exit(1)
+                return str(e)
 
         try:
 
@@ -90,7 +90,7 @@ class Config():
                 raise ConfigError('No "end_hub" defined.')
         except ConfigError as e:
             print(f'Error in {filename}: {e}.')
-            exit(1)
+            return str(e)
 
     def parse_first_line(self, key: str, value: str) -> int:
         """

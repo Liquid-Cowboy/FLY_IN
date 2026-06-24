@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Drone import Drone
+    from srcs.utils.Drone import Drone
 
 from constants import Colors, ZoneTypes
 
