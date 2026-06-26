@@ -29,12 +29,13 @@ class Config():
             connected
         """
         parsed: dict[str, Any] = {'hubs': [], 'connections': []}
-        error: str | None = self.parser(filename, parsed)
-        self.start_hub: Hub = parsed['start_hub']
-        self.end_hub: Hub = parsed['end_hub']
-        self.nb_drones: int = parsed['nb_drones']
-        self.hubs: list[Hub] = parsed['hubs']
-        self.connections: list[Connection] = parsed['connections']
+        self.error: str | None = self.parser(filename, parsed)
+        if not self.error:
+            self.start_hub: Hub = parsed['start_hub']
+            self.end_hub: Hub = parsed['end_hub']
+            self.nb_drones: int = parsed['nb_drones']
+            self.hubs: list[Hub] = parsed['hubs']
+            self.connections: list[Connection] = parsed['connections']
 
     def parser(self, filename: str, parsed: dict[str, Any]) -> str | None:
         """

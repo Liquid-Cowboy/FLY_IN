@@ -1,57 +1,64 @@
-import pygame
-from pygame import Surface, Rect, Font, Clock
-from rendering import Window, Assets, Background
-from ui import Button, TextBox
+from __future__ import annotations
+from typing import TYPE_CHECKING
+from pygame import Surface, Rect
 from setup import Config
+from .Scene import Scene
+from .TextBox import TextBox
+from .Button import Button
+from .Simulation import Simulation
+
+if TYPE_CHECKING:
+    from .Engine import Engine
+
+V_GAP: int = 30
+LOGO_TOP: int = 120
 
 
-class MainMenu():
-    def __init__(self, window: Window, assets: Assets,
-                 button_font: Font) -> None:
+class MainMenu(Scene):
+    def __init__(self, engine: Engine) -> None:
+        super().__init__(engine)
 
-        self.window = window
-        self.button_font = button_font
+        self.window = engine.window
+        self.button_font = engine.font
+        button_font = engine.font
 
-        buttons: dict[str, Surface] = assets.buttons
-
-        v_gap: int = 30
-
-        self.logo = assets.logo
-        self.logo_rect = self.logo.get_rect()
+        self.logo = engine.assets.logo
+        self.logo_rect = engine.assets.logo.get_rect()
         logo_w = self.logo.get_size()[0]
-        self.logo_rect.topleft = (window.width // 2 - logo_w // 2, 120)
+        self.logo_rect.topleft = (engine.window.width // 2 -
+                                  logo_w // 2, LOGO_TOP)
 
-        text_box_imgs = self.get_button_imgs('text_box', buttons)
-        play_imgs = self.get_button_imgs('play_button', buttons)
-        custom_imgs = self.get_button_imgs('large_button', buttons)
-        options_imgs = self.get_button_imgs('medium_button', buttons)
-        quit_imgs = self.get_button_imgs('medium_button', buttons)
+        text_box_imgs = engine.assets.buttons['text_box']
+        play_imgs = engine.assets.buttons['play']
+        custom_imgs = engine.assets.buttons['custom']
+        options_imgs = engine.assets.buttons['options']
+        quit_imgs = engine.assets.buttons['quit']
 
         text_rect: Rect = text_box_imgs['base'].get_rect()
         play_rect: Rect = play_imgs['base'].get_rect()
         custom_rect: Rect = custom_imgs['base'].get_rect()
         options_rect: Rect = options_imgs['base'].get_rect()
-        quit_rect: Rect = options_imgs['base'].get_rect()
+        quit_rect: Rect = quit_imgs['base'].get_rect()
 
         text_rect.topleft = (
             self.logo_rect.left,
-            self.logo_rect.bottom + v_gap)
+            self.logo_rect.bottom + V_GAP)
 
         play_rect.topright = (
             self.logo_rect.right,
-            self.logo_rect.bottom + v_gap)
+            self.logo_rect.bottom + V_GAP)
 
         custom_rect.topleft = (
             text_rect.left,
-            text_rect.bottom + v_gap)
+            text_rect.bottom + V_GAP)
 
         options_rect.topleft = (
             custom_rect.left,
-            custom_rect.bottom + v_gap)
+            custom_rect.bottom + V_GAP)
 
         quit_rect.topright = (
             custom_rect.right,
-            custom_rect.bottom + v_gap)
+            custom_rect.bottom + V_GAP)
 
         white: tuple[int, int, int] = (255, 255, 255)
         dark_gray: tuple[int, int, int] = (100, 100, 100)
@@ -97,76 +104,61 @@ class MainMenu():
                            quit_rect,
                            quit_text)
 
-    @staticmethod
-    def get_button_imgs(button_type: str, button_dict: dict):
-        base = button_dict.get(button_type +
-                               '_base.png', Surface((243, 60))).copy()
-        highlight = button_dict.get(button_type +
-                                    '_highlight.png',
-                                    Surface((243, 60))).copy()
-        bottom = button_dict.get(button_type +
-                                 '_bottom.png', Surface((243, 60))).copy()
+        self.buttons = [self.text_box, self.play,
+                        self.custom, self.options, self.quit]
 
-        return {
-            'base': base,
-            'highlight': highlight,
-            'bottom': bottom,
-        }
+        self.error: Surface | None = None
+        self.error_timer: float = 0
+        self.error_alpha: int = 255
 
-    def main_menu(self, background: Background, clock: Clock) -> None:
-        # get button imgs
-        # setup button rects at the right place on the grid
-        buttons = [self.text_box, self.play,
-                   self.custom, self.options, self.quit]
-        running: bool = True
+    def handle_event(self, event):
+        self.text_box.check_click(event)
+        self.text_box.write_text(event)
+        self.custom.check_click(event)
 
-        while running:
-            self.window.screen.fill('#59e5ff')
+        if self.play.check_click(event):
+            config: Config | None = self.run_filename(self.text_box.input_text)
+            if config:
+                self.engine.change_scene(Simulation(self.engine, config))
+        if self.options.check_click(event):
+            pass
 
-            for event in pygame.event.get():
-                if self.text_box.check_click(event):
-                    pass
+        if self.quit.check_click(event):
+            self.engine.running = False
 
-                if self.play.check_click(event):
-                    self.run_filename(self.text_box.input_text)
+    def update(self, dt: float) -> None:
 
-                if self.options.check_click(event):
-                    pass
+        self.error_timer += dt
 
-                if self.custom.check_click(event):
-                    pass
+        if self.error_timer > 2 and self.error is not None:
+            self.error_alpha -= 5
+            if self.error_alpha <= 0:
+                self.error = None
 
-                if self.quit.check_click(event):
-                    running = False
+    def draw(self, screen: Surface):
+        self.window.screen.blit(self.logo, self.logo_rect)
 
-                if event.type == pygame.QUIT:
-                    running = False
+        for button in self.buttons:
+            button.hover()
+            button.draw(self.window.screen)
 
-                self.text_box.check_click(event)
-                self.text_box.write_text(event)
+        self.display_error_msg()
 
-            dt: float = clock.tick(60) / 1000
-           
-            background.run_clouds(dt)
-            self.window.screen.blit(self.logo, self.logo_rect)
+    def display_error_msg(self) -> None:
+        if not self.error:
+            return
+        self.error.set_alpha(self.error_alpha)
+        self.window.screen.blit(self.error, self.error_rect)
 
-            for button in buttons:
-                button.hover()
-                button.draw(self.window.screen)
-
-            pygame.display.update()
-
-    def display_error_msg(self, error: str) -> None:
-        error_img = self.button_font.render(error, True, (255, 0, 0))
-        error_rect = error_img.get_rect()
-        error_rect.bottomright = (self.window.screen_rect.right - 20,
-                                  self.window.screen_rect.bottom - 20)
-        print('Fuck!')
-        self.window.screen.blit(error_img, error_rect)
-
-
-    def run_filename(self, filename: str) -> None:
-        try:
-            config = Config(filename)
-        except Exception as e:
-            self.display_error_msg(str(e))
+    def run_filename(self, filename: str) -> None | Config:
+        config = Config(filename)
+        if config.error:
+            self.error = self.button_font.render(config.error.upper(),
+                                                 True, (255, 0, 0))
+            self.error_alpha = 255
+            self.error_rect = self.error.get_rect()
+            self.error_rect.bottomright = (self.window.screen_rect.right - 20,
+                                           self.window.screen_rect.bottom - 20)
+            self.error_timer = 0
+        else:
+            return config

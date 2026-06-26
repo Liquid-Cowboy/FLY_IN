@@ -1,4 +1,4 @@
-from ui import Button
+from .Button import Button
 from pygame import Surface, Rect, Event, Font
 import pygame
 

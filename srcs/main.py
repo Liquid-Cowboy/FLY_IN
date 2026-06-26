@@ -3,9 +3,9 @@
 import pygame
 from setup import Config
 from rendering.Map import Map
-from rendering import Window, Camera, Background, Assets
-from ui import Button, MainMenu
-from setup.DroneManager import DroneManager
+from rendering import Camera
+from ui import Engine
+# from setup.DroneManager import DroneManager
 
 WINDOW_W = 1366
 WINDOW_H = 768
@@ -17,22 +17,8 @@ CHALLENGER = 'maps/challenger/01_the_impossible_dream.txt'
 
 FILENAME = HARD
 
-config: Config = Config(FILENAME)
+FPS = 60
 
-window = Window(WINDOW_W, WINDOW_H)
-background = Background(window.screen)
-assets = Assets()
-assets.load_imgs('assets/imgs')
-background.setup_clouds(assets.clouds)
-TEXT_FONT = pygame.font.SysFont("arial", 10)
-
-flyin_map = Map(config)
-
-cam = Camera()
-
-running = True
-
-clock = pygame.time.Clock()
 
 # manager = DroneManager(config)
 # manager.schedule_drones()
@@ -40,9 +26,28 @@ clock = pygame.time.Clock()
 # for res in turn_gen:
 #     print(res['log'])
 
-button_font = pygame.Font('assets/fonts/Jersey10-Regular.ttf', 35)
+IMGS_PATH: str = 'assets/imgs/'
+FONT_PATH: str = 'assets/fonts/Jersey10-Regular.ttf'
 
-main_menu = MainMenu(window, assets, button_font)
 
 if __name__ == '__main__':
-    main_menu.main_menu(background, clock)
+
+    e = Engine((WINDOW_W, WINDOW_H),
+               IMGS_PATH,
+               FONT_PATH)
+
+    while e.running:
+
+        dt: float = e.clock.tick(FPS) / 1000
+        e.window.screen.fill('#59e5ff')
+        e.background.run_clouds(dt)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                e.running = False
+
+            e.scene.handle_event(event)
+        e.scene.update(dt)
+        e.scene.draw(e.window.screen)
+
+        pygame.display.update()
