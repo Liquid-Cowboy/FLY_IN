@@ -6,7 +6,7 @@ from pygame import Surface, Font
 
 
 class Map():
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, window: Window):
 
         self.hubs = config.hubs
         self.connections = config.connections
@@ -19,22 +19,27 @@ class Map():
         self.comp_x: int = abs(self.min_x) if self.min_x < 0 else 0
         self.comp_y: int = abs(self.min_y) if self.min_y < 0 else 0
 
-        self._base_cs: int = 5
-        self._zoom: float = 25.0
-        self._cs: int = round(self._base_cs * self._zoom)
+        self.base_cs: int = 10
+        self.zoom: float = 25.0
+        self.cs: int = round(self.base_cs * self.zoom)
 
-        self._width: int = (self.max_x + self.comp_x + 1) * self._cs
-        self._height: int = (self.max_y + self.comp_y + 1) * self._cs
+        self.width: int = (self.max_x + self.comp_x + 1) * self.cs
+        self.height: int = (self.max_y + self.comp_y + 1) * self.cs
+
+        half_x = self.width // 2
+        half_y = self.height // 2
+        self.grid_start_x = window.width // 2 - half_x
+        self.grid_start_y = window.height // 2 - half_y
 
     def get_cell_pos(self, x: int, y: int) -> tuple[int, int]:
         """Translates input coordinates to pixel coordinates on the screen"""
-        return ((x + self.comp_x) * self._cs + self._cs // 2,
-                (y + self.comp_y) * self._cs + self._cs // 2)
+        return ((x + self.comp_x) * self.cs + self.grid_start_x,
+                (y + self.comp_y) * self.cs + self.grid_start_y)
 
     def draw_map(self, surface: Surface, hub_font: Font,
                  cam: Camera, win: Window):
 
-        cs: int = self._cs
+        cs: int = self.cs
         circle_rad: float = (cs // 2) * 0.8
         circle_rad = cam.get_trans_nb(int(circle_rad))
         line_width = cam.get_trans_nb(3)

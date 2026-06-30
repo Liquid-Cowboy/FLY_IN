@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+from pygame import Rect, Surface
 
 if TYPE_CHECKING:
-    from srcs.utils.Drone import Drone
+    from rendering import Assets, Map
 
 from constants import Colors, ZoneTypes
 
@@ -50,7 +51,19 @@ class Hub():
                c.zone2 == self and c.zone1 == zone):
                 return c
         return None
-    
+
+    def init_graphics(self, map: Map, assets: Assets) -> None:
+        color: str = self.color.value
+        self.img: Surface = assets.hubs[color].copy()
+
+        self.rect: Rect = self.img.get_rect()
+
+        left, top = map.get_cell_pos(self.x, self.y)
+
+        center = (left + map.cs // 2, top + map.cs // 2)
+
+        self.rect.center = center
+
     def __hash__(self):
         return hash(self.name)
 

@@ -35,6 +35,7 @@ class Assets():
             f_path: str = join(img_dir, filename)
             if "cloud" in filename:
                 self.clouds[filename] = self.get_image(f_path, 5)
+                continue
 
             for pattern, buttons in button_map.items():
                 if pattern in filename:
@@ -52,7 +53,7 @@ class Assets():
 
             if 'hub' in filename:
                 color: str = filename.split('_')[-1].removesuffix('.png')
-                self.hubs[color] = self.get_image(f_path)
+                self.hubs[color] = self.get_image(f_path, 5)
 
     def get_image(self, img_path: str,
                   scale_by: int | None = None) -> Surface:

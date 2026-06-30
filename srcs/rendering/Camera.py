@@ -41,7 +41,7 @@ class Camera():
         """
         if event.type == MOUSEWHEEL:
             self._zoom += event.y * 0.1
-            self._zoom = max(0.1, min(self._zoom, 5.0))
+            self._zoom = max(0.2, min(self._zoom, 5.0))
 
         # if event.button == 1 it means we're clicking the
         # left button
